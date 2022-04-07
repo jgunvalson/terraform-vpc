@@ -25,3 +25,23 @@ resource "aws_vpc_ipv4_cidr_block_association" "secondary_cidr_blocks" {
   vpc_id     = aws_vpc.vpc.id
   cidr_block = var.secondary_cidr_blocks[count.index]
 }
+
+data "aws_internet_gateway" "default-internet-gateway" {
+  filter {
+    name   = "attachment.vpc-id"
+    values = [aws_vpc.vpc.id]
+  }
+}
+
+resource "aws_route_table" "route-table" {
+  vpc_id = aws_vpc.vpc.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = data.aws_internet_gateway.default-internet-gateway.id
+  }
+
+  tags = {
+    Name = "${var.name}-route-table"
+  }
+}
